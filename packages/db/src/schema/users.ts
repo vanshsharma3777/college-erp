@@ -9,6 +9,7 @@ import {
 
 import { roleEnum } from "./enums";
 import { departments } from "./departments";
+import { integer } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -45,4 +46,6 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .notNull(),
+
+  version: integer("version").default(1)
 });

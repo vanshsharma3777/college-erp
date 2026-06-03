@@ -1,5 +1,5 @@
 {
-  "name": "db",
+  "name": "@repo/db",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -15,5 +15,8 @@
     "@neondatabase/serverless": "^1.1.0",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.21.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
   }
 }

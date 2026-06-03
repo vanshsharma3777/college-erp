@@ -15,6 +15,13 @@
       "when": 1780395206287,
       "tag": "0001_tidy_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780419267603,
+      "tag": "0002_purple_sabra",
+      "breakpoints": true
     }
   ]
 }

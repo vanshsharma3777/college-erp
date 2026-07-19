@@ -229,3 +229,27 @@ export async function acceptSession(sessionId: string, subjectOfferingId: string
 export function discardPending(sessionId: string): void {
   pending.delete(sessionId);
 }
+
+/**
+ * Cancels a session: sets status to CANCELLED and clears pending marks.
+ * Late students cannot mark attendance after this.
+ */
+export async function cancelSession(sessionId: string, subjectOfferingId: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    // Update session status to CANCELLED
+    await tx
+      .update(attendanceSessions)
+      .set({ status: "CANCELLED", cancelledAt: new Date() })
+      .where(eq(attendanceSessions.id, sessionId));
+  });
+
+  // Clear all pending marks for this session
+  removeAllPending(sessionId);
+}
+
+/**
+ * Removes all pending marks for a given session.
+ */
+export function removeAllPending(sessionId: string): void {
+  pending.delete(sessionId);
+}

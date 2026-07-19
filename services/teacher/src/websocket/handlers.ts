@@ -1,6 +1,6 @@
 import type { WebSocket } from "ws";
 
-import type { ServerMessage } from "./protocol";
+import type { AttendanceView, ServerMessage } from "./protocol";
 import type { SocketAuth } from "./auth";
 import { send, sendToStudents, sendToTeacher } from "./connections";
 import {
@@ -14,6 +14,7 @@ import {
   removePending,
   getPendingView,
   acceptSession,
+  cancelSession,
 } from "./store";
 
 type TeacherAuth = Extract<SocketAuth, { role: "TEACHER" }>;
@@ -216,7 +217,49 @@ export async function handleAcceptAttendance(
   await acceptSession(sessionId, session.subjectOfferingId);
 
   const enrolled = await getEnrolledStudentIds(session.subjectOfferingId);
-  const message: ServerMessage = { type: "attendance_accepted", payload: { sessionId } };
+  const message: ServerMessage = { type: "attendance_accepted",payload: {
+    sessionId,
+    subjectOfferingId:session.subjectOfferingId
+  } };
   send(ws, message);
   sendToStudents(enrolled, message);
 }
+
+export async function handleCloseAttendance(
+  ws: WebSocket,
+  payload: Record<string, unknown>,
+  auth: TeacherAuth,
+): Promise<void> {
+  const { sessionId } = payload;
+  if (typeof sessionId !== "string" || sessionId.trim() === "") {
+    send(ws, error("SESSION_ID_REQUIRED", "sessionId is required (string)"));
+    return;
+  }
+
+  const session = await getSessionWithContext(sessionId);
+  if (!session) {
+    send(ws, error("SESSION_NOT_FOUND", "No attendance session found for this id"));
+    return;
+  }
+  if (session.createdBy !== auth.teacherProfileId) {
+    send(ws, error("FORBIDDEN", "You did not create this session"));
+    return;
+  }
+  if (session.status !== "OPEN") {
+    send(ws, error("SESSION_CLOSED", "This attendance session is no longer open"));
+    return;
+  }
+
+  // Prevent access for late students by setting session status to CANCELLED
+  // This stops new attendance checks for this session
+  await cancelSession(sessionId, session.subjectOfferingId);
+
+  const enrolled = await getEnrolledStudentIds(session.subjectOfferingId);
+  // The view still reads "OPEN" (fetched before we cancelled) — reflect the
+  // real outcome so the client can show it faithfully.
+  const closedView: AttendanceView = { ...toView(session), status: "CANCELLED" };
+  const message: ServerMessage = { type: "attendance_closed", payload: { attendance: closedView } };
+  send(ws, message);
+  sendToStudents(enrolled, message);
+}
+

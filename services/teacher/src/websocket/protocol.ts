@@ -7,14 +7,16 @@ export type Role = "TEACHER" | "STUDENT";
 // Client -> Server
 export type ClientMessage =
   | { type: "create_attendance"; payload: Record<string, unknown> }
+  | { type: "close_attendance"; payload: Record<string, unknown> }
   | { type: "mark_attendance"; payload: Record<string, unknown> }
   | { type: "remove_student"; payload: Record<string, unknown> }
   | { type: "accept_attendance"; payload: Record<string, unknown> };
 
 const CLIENT_MESSAGE_TYPES = [
-  "create_attendance",
   "mark_attendance",
   "remove_student",
+  "create_attendance",
+  "close_attendance",
   "accept_attendance",
 ] as const;
 
@@ -45,14 +47,15 @@ export interface PendingStudent {
 // Server -> Client
 export type ServerMessage =
   | { type: "connected"; payload: { role: Role } }
+  | { type: "attendance_available"; payload: { attendance: AttendanceView ,} } // pushed to enrolled students
+  | { type: "attendance_closed"; payload: { attendance: AttendanceView } } // ack to the close teacher
   | { type: "attendance_created"; payload: { attendance: AttendanceView } } // ack to the creating teacher
-  | { type: "attendance_available"; payload: { attendance: AttendanceView } } // pushed to enrolled students
   | { type: "attendance_marked"; payload: { sessionId: string } } // ack to the student who clicked
   | {
       type: "pending_update";
       payload: { sessionId: string; students: PendingStudent[]; totalMarked: number };
     } // pushed to the owning teacher after every mark/remove
-  | { type: "attendance_accepted"; payload: { sessionId: string } } // pushed to teacher + enrolled students
+  | { type: "attendance_accepted"; payload: { sessionId: string , subjectOfferingId:string  } } // pushed to teacher + enrolled students
   | { type: "error"; payload: { code?: string; message: string; errors?: string[] } };
 
 /**

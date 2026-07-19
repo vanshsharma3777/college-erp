@@ -10,6 +10,7 @@ import {
   handleMarkAttendance,
   handleRemoveStudent,
   handleAcceptAttendance,
+  handleCloseAttendance,
 } from "./handlers";
 import { getOpenSessionsForStudent, toView } from "./store";
 
@@ -97,6 +98,7 @@ export function createWebSocketServer(server: Server, path = "/ws"): WebSocketSe
             await handleCreateAttendance(ws, msg.payload, auth);
             return;
           }
+
           case "mark_attendance": {
             if (auth.role !== "STUDENT") {
               sendError(ws, "FORBIDDEN", "Only students can mark attendance");
@@ -105,6 +107,7 @@ export function createWebSocketServer(server: Server, path = "/ws"): WebSocketSe
             await handleMarkAttendance(ws, msg.payload, auth);
             return;
           }
+
           case "remove_student": {
             if (auth.role !== "TEACHER") {
               sendError(ws, "FORBIDDEN", "Only teachers can remove a student");
@@ -113,12 +116,27 @@ export function createWebSocketServer(server: Server, path = "/ws"): WebSocketSe
             await handleRemoveStudent(ws, msg.payload, auth);
             return;
           }
+
           case "accept_attendance": {
             if (auth.role !== "TEACHER") {
               sendError(ws, "FORBIDDEN", "Only teachers can accept attendance");
               return;
             }
             await handleAcceptAttendance(ws, msg.payload, auth);
+            return;
+          }
+
+          case "close_attendance": {
+            if (auth.role !== "TEACHER") {
+              sendError(ws, "FORBIDDEN", "Only teachers can close attendance");
+              return;
+            }
+            await handleCloseAttendance(ws, msg.payload, auth);
+            return;
+          }
+
+          default: {
+            sendError(ws, "UNKNOWN_MESSAGE", "Unknown message type");
             return;
           }
         }

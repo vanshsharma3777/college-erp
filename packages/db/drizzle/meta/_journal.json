@@ -43,6 +43,13 @@
       "when": 1784268882327,
       "tag": "0005_rapid_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784403579651,
+      "tag": "0006_smart_human_fly",
+      "breakpoints": true
     }
   ]
 }

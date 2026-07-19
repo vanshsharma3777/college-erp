@@ -52,7 +52,7 @@ export const attendanceSessions = pgTable("attendance_sessions", {
   status: attendanceSessionStatusEnum("status").default("OPEN").notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
-
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   // Set only when the teacher hits "Accept" and the session's records
   // are committed.
   acceptedAt: timestamp("accepted_at"),

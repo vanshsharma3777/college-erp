@@ -12,6 +12,7 @@ import { programs } from "./programs";
 import { semesters } from "./semesters";
 import { subjectEnrollments } from "./subject-enrollments";
 import { attendanceRecords } from "./attendance-records";
+import { teacherProfiles } from "./teacher-profiles";
 
 export const studentProfiles = pgTable(
   "student_profiles",
@@ -26,6 +27,11 @@ export const studentProfiles = pgTable(
       })
       .notNull()
       .unique(),
+
+    coordinatorId: uuid("coordinator_id")
+      .references(() => teacherProfiles.id, {
+        onDelete: "cascade",
+      }),
 
     programId: uuid("program_id")
       .references(() => programs.id)

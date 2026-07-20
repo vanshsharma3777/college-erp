@@ -6,6 +6,7 @@ import {
   subjectEnrollments,
   subjectOfferings,
   studentProfiles,
+  teacherProfiles,
 } from "@repo/db/schema";
 
 import type { AttendanceView, PendingStudent } from "./protocol";
@@ -59,6 +60,11 @@ export async function getSessionWithContext(sessionId: string) {
         with: { classroom: true },
       },
     },
+  });
+}
+export async function getTeacherId(teacherId: string) {
+  return db.query.teacherProfiles.findFirst({
+    where: eq(teacherProfiles.userId, teacherId),
   });
 }
 

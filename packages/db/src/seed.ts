@@ -234,6 +234,7 @@ async function main() {
             userId: studentUser.id,
             programId: program.id,
             semesterId: semester.id,
+              coordinatorId: teacherProfile.id, // <-- add this
             sectionRollNo: def.roll,
             universityRollNo: `UNI-${def.roll}`,
             registrationNo: `REG-${def.roll}`,

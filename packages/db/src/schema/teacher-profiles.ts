@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   pgTable,
   timestamp,
@@ -46,6 +47,7 @@ export const teacherProfiles = pgTable(
     }),
 
     joinedAt: date("joined_at"),
+    isCoordinator: boolean("is_coordinator").default(false),
 
     createdAt: timestamp("created_at")
       .defaultNow()

@@ -12,6 +12,7 @@ export * from "./semesters";
 
 export * from "./student-profiles";
 export * from "./teacher-profiles";
+export * from "./sections";
 
 export * from "./classrooms";
 export * from "./subject-enrollments";

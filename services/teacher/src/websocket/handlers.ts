@@ -15,6 +15,7 @@ import {
   getPendingView,
   acceptSession,
   cancelSession,
+  getTeacherId,
 } from "./store";
 
 type TeacherAuth = Extract<SocketAuth, { role: "TEACHER" }>;
@@ -223,6 +224,27 @@ export async function handleAcceptAttendance(
   } };
   send(ws, message);
   sendToStudents(enrolled, message);
+}
+
+export async function handleStudentsDetailForCoordinator(
+  ws:WebSocket,
+  payload :{teacherId: string;},
+  auth:TeacherAuth,
+): Promise<void>{
+   const {   teacherId } = payload;
+  
+  if(!teacherId){
+     send(ws, error("TEACHERID_MISSING", "Teacher Id not found"));
+     return
+  }
+  const coordinatorId = await getTeacherId(teacherId);
+  console.log("coordinatorId " , coordinatorId)
+  if(!coordinatorId){
+     send(ws, error("TEACHERID_MISSING", "Teacher Id not found"));
+     return
+  }
+  const message : ServerMessage = { type: "get_students_detail", payload: { teacherId: (coordinatorId.id) } };
+  send(ws, message);
 }
 
 export async function handleCloseAttendance(

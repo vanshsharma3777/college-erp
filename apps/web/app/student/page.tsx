@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TEACHER_SERVICE_WS_URL } from "../lib/config";
 import { getCurrentUser, type CurrentUser } from "../lib/auth";
+import axios from "axios";
 
 interface AttendanceView {
   id: string;
@@ -24,10 +25,12 @@ interface AttendanceView {
 type SessionState = "open" | "marked" | "accepted";
 type ConnectionState = "connecting" | "connected" | "closed";
 
-export default function StudentPage() {
+function DashboardContent() {
   const router = useRouter();
+
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [studentId, setStudentId] = useState();
   const [connection, setConnection] = useState<ConnectionState>("connecting");
 
   const [sessions, setSessions] = useState<Map<string, AttendanceView>>(new Map());
@@ -37,12 +40,26 @@ export default function StudentPage() {
 
   const wsRef = useRef<WebSocket | null>(null);
 
-  useEffect(() => {
-    getCurrentUser().then((u) => {
-      setUser(u);
-      setAuthChecked(true);
-    });
-  }, []);
+useEffect(() => {
+  getCurrentUser().then(async (u) => {
+    setUser(u);
+    setAuthChecked(true);
+
+    if (u && u.role === "STUDENT") {
+      try {
+        // Replacing URL parsing with an explicit Axios network request
+        const response = await axios.get("/api/attendance/student/student-id");
+        console.log("response.data" ,response.data)
+        if (response.data?.studentId) {
+          setStudentId(response.data.studentId);
+        }
+      } catch (err) {
+        console.error("Axios failed to fetch student identity profile:", err);
+        setError("Failed to load student profile context.");
+      }
+    }
+  });
+}, []);
 
   useEffect(() => {
     if (!authChecked || !user || user.role !== "STUDENT") return;
@@ -56,7 +73,7 @@ export default function StudentPage() {
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-      console.log("message ws " , msg)
+      console.log("message ws ", msg);
       if (msg.type === "connected") {
         setConnection("connected");
       } else if (msg.type === "attendance_available") {
@@ -68,9 +85,9 @@ export default function StudentPage() {
         setStates((prev) => new Map(prev).set(id, "marked"));
       } else if (msg.type === "attendance_accepted") {
         const id: string = msg.payload.sessionId;
-        const subjectOfferingId: AttendanceView = msg.payload.subjectOfferingId  ;
+        const subjectOfferingId: AttendanceView = msg.payload.subjectOfferingId;
         setStates((prev) => new Map(prev).set(id, "accepted"));
-        router.push(`student/get-attendance?subjectId=${subjectOfferingId}`);
+        router.push(`student/get-details?subjectId=${subjectOfferingId}`);
       } else if (msg.type === "attendance_closed") {
         const attendance: AttendanceView = msg.payload.attendance;
         
@@ -142,20 +159,33 @@ export default function StudentPage() {
         {/* Dynamic Navigation Context Header */}
         <div className="relative bg-slate-900/80 p-6 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="relative z-10 space-y-1">
-            <div className="text-[10px] font-bold tracking-widest uppercase text-amber-500/90">College ERP · Student Terminal</div>
-            <h1 className="text-2xl font-black tracking-tight text-white antialiased">Your Live Classes</h1>
-            <p className="text-xs text-slate-400 font-medium tracking-wide flex items-center gap-1.5">
-              <span>{user ? `${user.firstName} ${user.lastName}` : "Student Node"}</span>
-              <span className="text-slate-700">·</span>
-              {connection === "connecting" && <span className="text-slate-500 animate-pulse">connecting…</span>}
-              {connection === "connected" && (
-                <span className="text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(52,211,153,0.3)] flex items-center gap-1">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> link active
-                </span>
-              )}
-              {connection === "closed" && <span className="text-rose-400 font-bold">socket disconnected</span>}
-            </p>
+          
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <div className="text-[10px] font-bold tracking-widest uppercase text-amber-500/90">College ERP · Student Terminal</div>
+              <h1 className="text-2xl font-black tracking-tight text-white antialiased">Your Live Classes</h1>
+              <p className="text-xs text-slate-400 font-medium tracking-wide flex items-center gap-1.5">
+                <span>{user ? `${user.firstName} ${user.lastName}` : "Student Node"}</span>
+                <span className="text-slate-700">·</span>
+                {connection === "connecting" && <span className="text-slate-500 animate-pulse">connecting…</span>}
+                {connection === "connected" && (
+                  <span className="text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(52,211,153,0.3)] flex items-center gap-1">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> link active
+                  </span>
+                )}
+                {connection === "closed" && <span className="text-rose-400 font-bold">socket disconnected</span>}
+              </p>
+            </div>
+
+            {/* History Navigation Link Button Trigger */}
+            {studentId && (
+              <button
+                onClick={() => router.push(`/student/get-details?studentId=${studentId}`)}
+                className="px-3.5 py-2 bg-slate-950 hover:bg-slate-850 text-slate-300 hover:text-white rounded-xl text-xs font-bold border border-slate-850 hover:border-slate-700 transition duration-150 tracking-wide inline-flex items-center gap-1.5 shadow-sm shrink-0 self-start sm:self-center"
+              >
+                📊 Get Previous Attendance Record
+              </button>
+            )}
           </div>
         </div>
 
@@ -214,9 +244,9 @@ export default function StudentPage() {
                       onClick={() => handleMark(a.id)}
                       disabled={state !== "open"}
                     >
-                      {state === "open" && "Broadcast Presence"}
-                      {state === "marked" && "✓ Signed · Awaiting Commit"}
-                      {state === "accepted" && "Finalized Registry"}
+                      {state === "open" && "Mark Attendance"}
+                      {state === "marked" && "✓ Pending Approval"}
+                      {state === "accepted" && "Attendance Confirmed"}
                     </button>
                   </div>
                 </div>
@@ -227,5 +257,19 @@ export default function StudentPage() {
 
       </div>
     </div>
+  );
+}
+
+// Next.js client components using hooks like useSearchParams must be wrapped 
+// in a Suspense boundary when rendered inside Static HTML boundaries.
+export default function StudentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center text-slate-400">
+        <div className="animate-pulse text-xs font-bold tracking-widest uppercase">Loading Terminal Workspace…</div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }

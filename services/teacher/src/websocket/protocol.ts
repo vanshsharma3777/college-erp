@@ -10,13 +10,15 @@ export type ClientMessage =
   | { type: "close_attendance"; payload: Record<string, unknown> }
   | { type: "mark_attendance"; payload: Record<string, unknown> }
   | { type: "remove_student"; payload: Record<string, unknown> }
-  | { type: "accept_attendance"; payload: Record<string, unknown> };
+  | { type: "accept_attendance"; payload: Record<string, unknown> }
+  | { type: "get_students_detail"; payload: {teacherId: string}};
 
 const CLIENT_MESSAGE_TYPES = [
   "mark_attendance",
   "remove_student",
   "create_attendance",
   "close_attendance",
+  "get_students_detail",
   "accept_attendance",
 ] as const;
 
@@ -56,7 +58,9 @@ export type ServerMessage =
       payload: { sessionId: string; students: PendingStudent[]; totalMarked: number };
     } // pushed to the owning teacher after every mark/remove
   | { type: "attendance_accepted"; payload: { sessionId: string , subjectOfferingId:string  } } // pushed to teacher + enrolled students
-  | { type: "error"; payload: { code?: string; message: string; errors?: string[] } };
+  | { type: "error"; payload: { code?: string; message: string; errors?: string[] } }
+  | { type: "get_students_detail"; payload: { teacherId : string} };
+  
 
 /**
  * Validate that a raw parsed JSON object is a recognizable client message.

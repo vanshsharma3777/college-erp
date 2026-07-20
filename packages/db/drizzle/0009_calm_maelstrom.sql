@@ -1,0 +1,1 @@
+ALTER TABLE "teacher_profiles" RENAME COLUMN "false" TO "is_coordinator";

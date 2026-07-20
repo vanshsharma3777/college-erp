@@ -1,0 +1,3 @@
+ALTER TABLE "student_profiles" ADD COLUMN "coordinator_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_coordinator_id_teacher_profiles_id_fk" FOREIGN KEY ("coordinator_id") REFERENCES "public"."teacher_profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_coordinator_id_unique" UNIQUE("coordinator_id");

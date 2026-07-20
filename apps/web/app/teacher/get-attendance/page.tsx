@@ -77,7 +77,7 @@ export default function GetAttendancePage({ searchParams }: { searchParams: Prom
       <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 text-slate-100">
         <div className="max-w-md w-full mx-auto bg-slate-900/60 backdrop-blur-md p-8 border border-slate-800 rounded-2xl shadow-2xl text-center space-y-4">
           <div className="text-xs font-bold tracking-widest uppercase text-amber-500/80">College ERP · Analytics</div>
-          <p className="text-sm text-slate-400 animate-pulse font-medium tracking-wide">Syncing digital ledger metrics...</p>
+          <p className="text-sm text-slate-400 animate-pulse font-medium tracking-wide">Loading...</p>
         </div>
       </div>
     );
@@ -101,7 +101,6 @@ export default function GetAttendancePage({ searchParams }: { searchParams: Prom
     );
   }
 
-  // Live real-time percentage execution
   const attendanceRate = data.stats.totalStudents > 0 
     ? Math.round((data.stats.presentCount / data.stats.totalStudents) * 100) 
     : 0;
@@ -116,7 +115,7 @@ export default function GetAttendancePage({ searchParams }: { searchParams: Prom
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
             <div>
               <p className="text-[10px] font-bold tracking-widest uppercase text-amber-500/90">
-                Attendance Ledger Report
+                Attendance Report
               </p>
               <h1 className="text-2xl font-extrabold tracking-tight text-white mt-1 antialiased">
                 {data.subjectCode} <span className="text-slate-500 font-light font-sans">|</span> <span className="text-slate-200 font-medium">{data.subjectName}</span>
@@ -174,19 +173,16 @@ export default function GetAttendancePage({ searchParams }: { searchParams: Prom
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
               <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.456L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.863-9.864.001-2.637-1.03-5.114-2.904-6.989-1.873-1.876-4.36-2.907-7.008-2.908-5.44 0-9.866 4.42-9.869 9.865-.001 1.649.431 3.257 1.256 4.675l-.973 3.553 3.64-.955zm10.707-7.07c-.282-.141-1.673-.826-1.932-.92-.259-.095-.448-.141-.637.141-.188.283-.728.92-.892 1.107-.164.188-.328.212-.61.07-2.8-.14-3.874-1.74-4.63-3.047-.215-.373.215-.346.615-1.147.094-.19.048-.356-.024-.497-.072-.142-.637-1.535-.873-2.103-.23-.554-.462-.48-.637-.489-.165-.008-.353-.01-.542-.01-.19 0-.498.07-.757.355-.26.283-.99 1.016-.99 2.48 0 1.465 1.066 2.88 1.214 3.07.149.191 2.098 3.203 5.084 4.495.71.307 1.265.49 1.696.628.713.226 1.362.194 1.875.118.571-.085 1.674-.684 1.909-1.344.236-.66.236-1.226.166-1.343-.07-.117-.26-.188-.542-.33z"/>
             </svg>
-            Share Report on WhatsApp
+            Share on WhatsApp
           </button>
         </div>
 
-        {/* Student List Ledger Dashboard */}
         <div className="bg-slate-900/80 rounded-2xl shadow-2xl border border-slate-800/80 overflow-hidden">
-          <div className="border-b border-slate-850 px-6 py-4 bg-slate-950/20 flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Roster Audit Registry
+          <div className="border-b  border-slate-850 px-6 py-4 bg-slate-950/20 flex items-center justify-center">
+            <h2 className="text-xl font-bold uppercase  tracking-widest text-slate-400">
+              Analytics
             </h2>
-            <span className="text-[10px] font-mono text-slate-500 bg-slate-950/60 px-2 py-0.5 rounded border border-slate-800">
-              SEC LOGS
-            </span>
+            
           </div>
 
           <div className="divide-y divide-slate-850 max-h-[26rem] overflow-y-auto custom-scrollbar">
@@ -196,15 +192,15 @@ export default function GetAttendancePage({ searchParams }: { searchParams: Prom
                 className="flex items-center justify-between px-6 py-3.5 text-sm hover:bg-slate-850/30 transition duration-75 group"
               >
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 font-mono text-[11px] font-bold text-slate-400 border border-slate-800 group-hover:border-amber-500/30 transition">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-950 font-mono text-[11px] font-bold text-slate-400 border border-slate-800 group-hover:border-amber-500/30 transition">
                     {student.sectionRollNo}
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-slate-200 tracking-wide truncate group-hover:text-white transition">
-                      {student.name} <span className="text-slate-400 font-normal">{student.lastName}</span>
+                      {student.name} {student.lastName}
                     </h3>
-                    <p className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5">
-                      Roll · ID {student.sectionRollNo}
+                    <p className="text-[10px] text-slate-500 text-sm  tracking-wider uppercase mt-0.5">
+                      Roll NO {student.sectionRollNo}
                     </p>
                   </div>
                 </div>

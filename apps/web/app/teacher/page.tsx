@@ -48,6 +48,7 @@ export default function TeacherPage() {
 
   const wsRef = useRef<WebSocket | null>(null);
   const sessionRef = useRef<AttendanceView | null>(null);
+  const teacherIdRef = useRef<string >(null);
 
   function applySession(next: AttendanceView | null) {
     sessionRef.current = next;
@@ -57,6 +58,7 @@ export default function TeacherPage() {
   useEffect(() => {
     getCurrentUser().then((u) => {
       setUser(u);
+      console.log(u)
       setAuthChecked(true);
     });
   }, []);
@@ -73,7 +75,8 @@ export default function TeacherPage() {
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-
+      console.log("every msg" , msg)
+      console.log("every msg : "  , msg)
       if (msg.type === "connected") {
         setConnection("connected");
       } else if (msg.type === "attendance_created") {
@@ -94,7 +97,15 @@ export default function TeacherPage() {
         setStudents([]);
         setAccepted(false);
         router.push(`teacher/get-attendance?sessionId=${sessionRef?.current?.id}`);
-      } else if (msg.type === "error") {
+      } 
+      
+      else if (msg.type === "get_students_detail") {
+        console.log("msg" , msg)
+        const teacherId = msg.payload.teacherId;
+  router.push(`/teacher/students-detail?coordinatorId=${teacherId}`);
+
+      }
+      else if (msg.type === "error") {
         setError(msg.payload.message);
       }
     };
@@ -105,6 +116,7 @@ export default function TeacherPage() {
   function handleCreate(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    console.log("subjectofferid" , subjectOfferingId)
     const payload: Record<string, unknown> = {
       subjectOfferingId: subjectOfferingId.trim(),
       sessionType,
@@ -134,6 +146,19 @@ export default function TeacherPage() {
     );
     router.push(`teacher/get-attendance?sessionId=${sessionRef.current.id}`);
   }
+  function handleGetStudentsDetail() {
+    console.log("clicked")
+    if ( !user) return;
+
+    wsRef.current?.send(
+      JSON.stringify({
+        type: "get_students_detail",
+        payload: {
+          teacherId: user.id  // Pass the actual teacher ID from auth context
+        },
+      }),
+    );
+      }
 
   function handleCloseAttendance() {
     if (!sessionRef.current) return;
@@ -192,7 +217,7 @@ export default function TeacherPage() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
           <div className="relative z-10 space-y-1">
             <div className="text-[10px] font-bold tracking-widest uppercase text-amber-500/90">College ERP · Attendance Manager</div>
-            <h1 className="text-2xl font-black tracking-tight text-white antialiased">Control Console</h1>
+            <h1 className="text-2xl font-black tracking-tight text-white antialiased">Create New Attendence</h1>
             <p className="text-xs text-slate-400 font-medium tracking-wide flex items-center gap-1.5">
               <span>{user ? `${user.firstName} ${user.lastName}` : "Terminal Node"}</span>
               <span className="text-slate-700">·</span>
@@ -217,7 +242,7 @@ export default function TeacherPage() {
           /* Session Instantiation Suite */
           <form className="bg-slate-900/80 p-6 rounded-2xl shadow-2xl border border-slate-800/80 space-y-4" onSubmit={handleCreate}>
             <div className="flex flex-col space-y-1.5">
-              <label htmlFor="subjectOfferingId" className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Subject Offering Context UUID</label>
+              <label htmlFor="subjectOfferingId" className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Subject Id</label>
               <input
                 id="subjectOfferingId"
                 className="block w-full rounded-xl border-slate-800 bg-slate-950/60 p-3 text-sm text-white focus:border-amber-500/50 focus:ring-amber-500/20 placeholder-slate-600 transition"
@@ -229,7 +254,7 @@ export default function TeacherPage() {
             </div>
 
             <div className="flex flex-col space-y-1.5">
-              <label htmlFor="sessionType" className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Session Type Category</label>
+              <label htmlFor="sessionType" className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Subject Type </label>
               <select
                 id="sessionType"
                 className="block w-full rounded-xl border-slate-800 bg-slate-950/60 p-3 text-sm text-white focus:border-amber-500/50 focus:ring-amber-500/20 transition"
@@ -242,7 +267,7 @@ export default function TeacherPage() {
             </div>
 
             <div className="flex flex-col space-y-1.5">
-              <label htmlFor="sessionDate" className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Target Session Date</label>
+              <label htmlFor="sessionDate" className="text-[10px] uppercase tracking-widest font-bold text-slate-400"> Date</label>
               <input
                 id="sessionDate"
                 type="date"
@@ -254,7 +279,7 @@ export default function TeacherPage() {
             </div>
 
             <div className="flex flex-col space-y-1.5">
-              <label htmlFor="timetableEntryId" className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Timetable Registry Mapping ID (Optional)</label>
+              <label htmlFor="timetableEntryId" className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Timetable ID (Optional)</label>
               <input
                 id="timetableEntryId"
                 className="block w-full rounded-xl border-slate-800 bg-slate-950/60 p-3 text-sm text-white focus:border-amber-500/50 focus:ring-amber-500/20 placeholder-slate-600 transition"
@@ -269,7 +294,7 @@ export default function TeacherPage() {
               type="submit" 
               disabled={connection !== "connected"}
             >
-              Initialize Live Sequence
+              Create New Attendance
             </button>
           </form>
         ) : (
@@ -314,7 +339,7 @@ export default function TeacherPage() {
                         className="py-1 px-2.5 rounded-md text-[10px] font-bold tracking-wide uppercase text-rose-400 bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/30 focus:outline-none focus:ring-1 focus:ring-rose-500 transition shrink-0" 
                         onClick={() => handleRemove(s.studentId)}
                       >
-                        Purge
+                        Remove
                       </button>
                     )}
                   </div>
@@ -329,7 +354,7 @@ export default function TeacherPage() {
                 onClick={handleAccept}
                 disabled={accepted}
               >
-                {accepted ? "Registry Saved ✓" : `Commit Registry (${students.length} Node(s))`}
+                {accepted ? "Registry Saved ✓" : `COMPLETED (${students.length} )`}
               </button>
 
               <button
@@ -337,12 +362,24 @@ export default function TeacherPage() {
                 onClick={handleCloseAttendance}
                 disabled={accepted}
               >
-                Abort Stream
+                Cancel Session
               </button>
             </div>
+            
           </div>
         )}
+        
+        <div  className="mt-5 flex justify-center"> 
+          <button onClick={()=>{
+      handleGetStudentsDetail()
+        }}
+                className="flex-1 flex justify-center py-2.5 px-4 rounded-xl shadow-lg text-sm font-bold text-yellow-400 bg-yellow- hover:bg-yellow-950/60 border border-yellow-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition duration-150 transform active:scale-[0.99]"
+                disabled={accepted}
+              >
+                Get Student record as Coordinator
+              </button> </div>
       </div>
+      
     </div>
   );
 }

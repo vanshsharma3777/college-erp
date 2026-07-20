@@ -11,6 +11,7 @@ import {
   handleRemoveStudent,
   handleAcceptAttendance,
   handleCloseAttendance,
+  handleStudentsDetailForCoordinator,
 } from "./handlers";
 import { getOpenSessionsForStudent, toView } from "./store";
 
@@ -123,6 +124,15 @@ export function createWebSocketServer(server: Server, path = "/ws"): WebSocketSe
               return;
             }
             await handleAcceptAttendance(ws, msg.payload, auth);
+            return;
+          }
+
+          case "get_students_detail": {
+            if (auth.role !== "TEACHER") {
+              sendError(ws, "FORBIDDEN", "Only teachers can accept attendance");
+              return;
+            }
+            await handleStudentsDetailForCoordinator(ws, msg.payload, auth);
             return;
           }
 
